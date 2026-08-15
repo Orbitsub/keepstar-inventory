@@ -1,0 +1,8 @@
+{
+    "chat.tools.terminal.autoApprove": {
+        "/^Get-Content README\\.md -ErrorAction SilentlyContinue \\| Select-Object -First 30 ; node -v ; npm -v ; git status$/": {
+            "approve": true,
+            "matchCommandLine": true
+        }
+    }
+}
