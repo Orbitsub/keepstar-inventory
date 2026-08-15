@@ -6,7 +6,7 @@
   "scripts": {
     "dev": "ts-node-dev --respawn --transpile-only src/server.ts",
     "build": "tsc",
-    "test": "cross-env ESI_CLIENT_ID=smoke-test-client ESI_CLIENT_SECRET=smoke-test-secret ESI_CALLBACK_URL=http://localhost:3002/api/auth/callback tsx --test src/*.test.ts",
+    "test": "cross-env ESI_CLIENT_ID=smoke-test-client ESI_CLIENT_SECRET=smoke-test-secret ESI_CALLBACK_URL=http://localhost:3002/api/auth/callback tsx --test --test-concurrency=1 src/*.test.ts",
     "start": "node dist/server.js"
   },
   "dependencies": {
