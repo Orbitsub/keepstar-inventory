@@ -220,10 +220,7 @@ export async function pollMarket(): Promise<void> {
 let schedulerHandle: NodeJS.Timeout | null = null;
 
 export function startScheduler(): void {
-  if (schedulerHandle) {
-    clearInterval(schedulerHandle);
-    schedulerHandle = null;
-  }
+  stopScheduler();
 
   const settings = dbHelper.getSettings();
   if (!settings.is_active) return;
@@ -232,4 +229,10 @@ export function startScheduler(): void {
   schedulerHandle = setInterval(() => {
     pollMarket().catch(err => console.error('Scheduled poll failed', err));
   }, intervalMs);
+}
+
+export function stopScheduler(): void {
+  if (!schedulerHandle) return;
+  clearInterval(schedulerHandle);
+  schedulerHandle = null;
 }

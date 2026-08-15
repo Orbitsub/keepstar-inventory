@@ -6,7 +6,7 @@ import cors from 'cors';
 import path from 'path';
 import fs from 'fs';
 import { dbHelper, Settings } from './database';
-import { pollMarket, startScheduler, scannerStatus } from './scanner';
+import { pollMarket, startScheduler, stopScheduler, scannerStatus } from './scanner';
 import { getZeroStockView, getLowStockView, getMarginView, getCategories } from './metrics';
 import { buildAuthorizeUrl, isValidState, exchangeCodeForToken, getAuthStatus, logout, isSsoConfigured } from './esiAuth';
 
@@ -159,3 +159,6 @@ app.listen(PORT, () => {
   console.log(`Keepstar Inventory Tracker backend listening on port ${PORT}`);
   startScheduler();
 });
+
+process.on('SIGINT', stopScheduler);
+process.on('SIGTERM', stopScheduler);
