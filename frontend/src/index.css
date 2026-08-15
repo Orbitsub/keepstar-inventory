@@ -1,24 +1,32 @@
-@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=Space+Grotesk:wght@400;500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Rajdhani:wght@500;600;700&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500;600&display=swap');
 
 :root {
-  --bg-color: #0b0710;
-  --bg-gradient: radial-gradient(circle at 50% 0%, #1c1226 0%, #0b0710 70%);
-  --panel-bg: rgba(24, 16, 32, 0.65);
-  --panel-border: rgba(255, 255, 255, 0.06);
-  --panel-hover: rgba(255, 255, 255, 0.09);
+  --bg-color: #0a0c10;
+  --bg-gradient:
+    radial-gradient(1200px 600px at 15% -10%, rgba(255, 180, 84, 0.06), transparent 60%),
+    radial-gradient(900px 500px at 100% 0%, rgba(79, 209, 165, 0.05), transparent 55%);
+  --panel-bg: rgba(18, 21, 27, 0.92);
+  --panel-border: rgba(255, 255, 255, 0.08);
+  --panel-hover: rgba(255, 255, 255, 0.03);
 
-  --text-primary: #f3f1f7;
-  --text-secondary: #a89cb5;
-  --text-muted: #776b85;
+  --text-primary: #e8eaf0;
+  --text-secondary: #8890a0;
+  --text-muted: #565d6b;
 
-  --accent-amethyst: #a855f7;
-  --accent-amethyst-rgb: 168, 85, 247;
+  /* kept the variable names the app already uses; values now point at the
+     amber/industrial palette instead of purple. "amethyst" == primary accent. */
+  --accent-amethyst: #ffb454;
+  --accent-amethyst-rgb: 255, 180, 84;
   --accent-gold: #f59e0b;
   --accent-gold-rgb: 245, 158, 11;
-  --accent-green: #10b981;
-  --accent-green-rgb: 16, 185, 129;
-  --accent-red: #ef4444;
-  --accent-red-rgb: 239, 68, 68;
+  --accent-green: #4fd1a5;
+  --accent-green-rgb: 79, 209, 165;
+  --accent-red: #ff6259;
+  --accent-red-rgb: 255, 98, 89;
+
+  --font-display: 'Rajdhani', sans-serif;
+  --font-body: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  --font-mono: 'JetBrains Mono', ui-monospace, monospace;
 
   --shadow-sm: 0 2px 8px -2px rgba(0, 0, 0, 0.5);
   --shadow-md: 0 4px 20px -4px rgba(0, 0, 0, 0.7);
@@ -35,7 +43,7 @@
 }
 
 body {
-  font-family: 'Outfit', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  font-family: var(--font-body);
   background-color: var(--bg-color);
   background-image: var(--bg-gradient);
   color: var(--text-primary);
@@ -50,32 +58,56 @@ body {
   height: 8px;
 }
 ::-webkit-scrollbar-track {
-  background: rgba(0, 0, 0, 0.2);
+  background: rgba(0, 0, 0, 0.3);
 }
 ::-webkit-scrollbar-thumb {
-  background: rgba(255, 255, 255, 0.1);
-  border-radius: 4px;
+  background: rgba(255, 180, 84, 0.18);
+  border-radius: 0;
 }
 ::-webkit-scrollbar-thumb:hover {
-  background: rgba(255, 255, 255, 0.2);
+  background: rgba(255, 180, 84, 0.32);
 }
 
+/* --- Panel / signature corner-bracket accent ---
+   No blur, no rounded corners: a flat bordered panel with a bright amber
+   bracket at the top-left and a dim one at the bottom-right, like a HUD
+   frame. Works on any .glass element regardless of size, no markup needed. */
 .glass {
+  position: relative;
   background: var(--panel-bg);
-  backdrop-filter: blur(16px);
-  -webkit-backdrop-filter: blur(16px);
   border: 1px solid var(--panel-border);
   box-shadow: var(--shadow-md);
-  border-radius: 12px;
+  border-radius: 0;
+}
+.glass::before,
+.glass::after {
+  content: '';
+  position: absolute;
+  width: 14px;
+  height: 14px;
+  pointer-events: none;
+}
+.glass::before {
+  top: -1px;
+  left: -1px;
+  border-top: 2px solid var(--accent-amethyst);
+  border-left: 2px solid var(--accent-amethyst);
+  opacity: 0.85;
+}
+.glass::after {
+  bottom: -1px;
+  right: -1px;
+  border-bottom: 2px solid rgba(255, 180, 84, 0.35);
+  border-right: 2px solid rgba(255, 180, 84, 0.35);
 }
 
 .glass-hover {
   transition: transform var(--transition-normal), border-color var(--transition-normal), box-shadow var(--transition-normal);
 }
 .glass-hover:hover {
-  transform: translateY(-2px);
-  border-color: rgba(255, 255, 255, 0.12);
-  box-shadow: var(--shadow-lg), 0 0 15px rgba(var(--accent-amethyst-rgb), 0.15);
+  transform: translateY(-1px);
+  border-color: rgba(255, 180, 84, 0.3);
+  box-shadow: var(--shadow-lg), 0 0 15px rgba(var(--accent-amethyst-rgb), 0.1);
   background: var(--panel-hover);
 }
 
@@ -104,7 +136,7 @@ a {
 }
 
 .app-header {
-  padding: 20px 24px;
+  padding: 22px 26px;
   display: flex;
   flex-direction: column;
   gap: 16px;
@@ -125,14 +157,17 @@ a {
 }
 
 .app-title h1 {
-  font-family: 'Space Grotesk', sans-serif;
-  font-size: 1.4rem;
+  font-family: var(--font-display);
   font-weight: 700;
+  font-size: 1.7rem;
+  letter-spacing: 0.01em;
+  color: #fff;
 }
 
 .app-subtitle {
   color: var(--text-secondary);
-  font-size: 0.85rem;
+  font-family: var(--font-mono);
+  font-size: 0.8rem;
 }
 
 .app-header-actions {
@@ -144,33 +179,40 @@ a {
 
 .app-tabs {
   display: flex;
-  gap: 8px;
+  gap: 2px;
   flex-wrap: wrap;
+  background: var(--bg-color);
+  border: 1px solid var(--panel-border);
+  padding: 4px;
+  width: fit-content;
 }
 
 .app-tab {
   display: flex;
   align-items: center;
   gap: 6px;
-  padding: 8px 14px;
-  border-radius: 8px;
+  padding: 9px 16px;
+  border-radius: 0;
   border: 1px solid transparent;
   background: transparent;
   color: var(--text-secondary);
   cursor: pointer;
-  font-size: 0.9rem;
-  transition: background var(--transition-fast), color var(--transition-fast), border-color var(--transition-fast);
+  font-family: var(--font-display);
+  font-weight: 600;
+  font-size: 0.95rem;
+  letter-spacing: 0.02em;
+  transition: background var(--transition-fast), color var(--transition-fast), box-shadow var(--transition-fast);
 }
 
 .app-tab:hover {
-  background: var(--panel-hover);
   color: var(--text-primary);
 }
 
 .app-tab-active {
-  background: rgba(var(--accent-amethyst-rgb), 0.18);
-  border-color: rgba(var(--accent-amethyst-rgb), 0.4);
-  color: var(--text-primary);
+  background: linear-gradient(180deg, rgba(255, 180, 84, 0.16), rgba(255, 180, 84, 0.06));
+  border-color: transparent;
+  box-shadow: inset 0 0 0 1px rgba(255, 180, 84, 0.4);
+  color: var(--accent-amethyst);
 }
 
 .app-main {
@@ -185,10 +227,12 @@ a {
   display: flex;
   align-items: center;
   gap: 8px;
-  padding: 6px 12px;
-  border-radius: 999px;
-  font-size: 0.85rem;
-  background: rgba(255, 255, 255, 0.05);
+  padding: 8px 14px;
+  border-radius: 0;
+  border: 1px solid var(--panel-border);
+  background: var(--bg-color);
+  font-family: var(--font-mono);
+  font-size: 0.78rem;
   color: var(--text-secondary);
 }
 
@@ -201,6 +245,8 @@ a {
 
 .status-ok .status-dot {
   background: var(--accent-green);
+  box-shadow: 0 0 0 0 rgba(var(--accent-green-rgb), 0.6);
+  animation: pulse-glow 2.4s infinite;
 }
 
 .status-running .status-dot {
@@ -212,9 +258,17 @@ a {
   background: var(--accent-red);
 }
 
+@media (prefers-reduced-motion: reduce) {
+  .status-ok .status-dot,
+  .status-running .status-dot {
+    animation: none;
+  }
+}
+
 .auth-unavailable {
   color: var(--text-muted);
-  font-size: 0.85rem;
+  font-family: var(--font-mono);
+  font-size: 0.8rem;
 }
 
 .poll-error {
@@ -222,29 +276,37 @@ a {
   border-left: 3px solid var(--accent-red);
   background: rgba(var(--accent-red-rgb), 0.08);
   color: var(--accent-red);
+  font-family: var(--font-mono);
   font-size: 0.85rem;
 }
 
 .app-notice {
   padding: 10px 14px;
   border: 1px solid var(--panel-border);
-  border-radius: 8px;
+  border-left: 3px solid currentColor;
+  border-radius: 0;
   font-size: 0.9rem;
 }
 
 .app-notice-success {
   color: var(--accent-green);
-  background: rgba(var(--accent-green-rgb), 0.1);
+  background: rgba(var(--accent-green-rgb), 0.08);
 }
 
 .app-notice-error {
   color: var(--accent-red);
-  background: rgba(var(--accent-red-rgb), 0.1);
+  background: rgba(var(--accent-red-rgb), 0.08);
 }
 
 @keyframes pulse {
   0%, 100% { opacity: 1; }
   50% { opacity: 0.3; }
+}
+
+@keyframes pulse-glow {
+  0% { box-shadow: 0 0 0 0 rgba(var(--accent-green-rgb), 0.55); }
+  70% { box-shadow: 0 0 0 8px rgba(var(--accent-green-rgb), 0); }
+  100% { box-shadow: 0 0 0 0 rgba(var(--accent-green-rgb), 0); }
 }
 
 /* --- Buttons --- */
@@ -253,19 +315,24 @@ a {
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  padding: 8px 14px;
-  border-radius: 8px;
+  padding: 9px 16px;
+  border-radius: 0;
   border: 1px solid var(--panel-border);
-  background: rgba(255, 255, 255, 0.04);
+  background: rgba(255, 255, 255, 0.03);
   color: var(--text-primary);
   cursor: pointer;
+  font-family: var(--font-display);
+  font-weight: 600;
   font-size: 0.9rem;
+  letter-spacing: 0.02em;
   text-decoration: none;
-  transition: background var(--transition-fast), border-color var(--transition-fast);
+  clip-path: polygon(8px 0, 100% 0, 100% 100%, 0 100%, 0 8px);
+  transition: background var(--transition-fast), border-color var(--transition-fast), filter var(--transition-fast);
 }
 
 .btn:hover {
   background: var(--panel-hover);
+  border-color: rgba(255, 180, 84, 0.3);
 }
 
 .btn:disabled {
@@ -274,12 +341,15 @@ a {
 }
 
 .btn-primary {
-  background: rgba(var(--accent-amethyst-rgb), 0.2);
-  border-color: rgba(var(--accent-amethyst-rgb), 0.5);
+  background: linear-gradient(180deg, #ffc978, var(--accent-amethyst));
+  border-color: transparent;
+  color: #100c05;
+  box-shadow: 0 0 0 1px rgba(255, 180, 84, 0.4), 0 4px 14px -4px rgba(255, 180, 84, 0.5);
 }
 
 .btn-primary:hover:not(:disabled) {
-  background: rgba(var(--accent-amethyst-rgb), 0.3);
+  filter: brightness(1.08);
+  background: linear-gradient(180deg, #ffc978, var(--accent-amethyst));
 }
 
 .btn-ghost {
@@ -299,7 +369,7 @@ a {
 
 .table-wrap {
   overflow-x: auto;
-  padding: 4px;
+  padding: 2px;
 }
 
 table {
@@ -310,33 +380,52 @@ table {
 
 thead th {
   text-align: left;
-  padding: 12px 16px;
+  padding: 14px 18px 12px;
   color: var(--text-muted);
+  font-family: var(--font-mono);
   font-weight: 500;
-  font-size: 0.78rem;
+  font-size: 0.72rem;
   text-transform: uppercase;
-  letter-spacing: 0.04em;
+  letter-spacing: 0.1em;
   border-bottom: 1px solid var(--panel-border);
   white-space: nowrap;
 }
 
 tbody td {
-  padding: 10px 16px;
+  padding: 13px 18px;
   border-bottom: 1px solid rgba(255, 255, 255, 0.04);
   white-space: nowrap;
+  font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
 }
 
 tbody tr:hover {
-  background: rgba(255, 255, 255, 0.03);
+  background: rgba(255, 255, 255, 0.015);
 }
 
 .cell-primary {
-  color: var(--text-primary);
-  font-weight: 500;
+  color: #fff;
+  font-family: var(--font-body);
+  font-weight: 600;
+}
+
+.item-copy-button {
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: inherit;
+  cursor: copy;
+  font: inherit;
+  text-align: left;
+}
+
+.item-copy-button:hover {
+  color: var(--accent-amethyst);
 }
 
 .cell-muted {
   color: var(--text-secondary);
+  font-family: var(--font-body);
 }
 
 .cell-positive {
@@ -347,29 +436,37 @@ tbody tr:hover {
   color: var(--accent-red);
 }
 
-/* --- Badges --- */
+/* --- Badges ---
+   Square, monospace, outlined tags instead of pill chips — reads as an
+   instrument-panel status label rather than a rounded UI badge. */
 
 .badge {
   display: inline-flex;
   align-items: center;
-  padding: 3px 10px;
-  border-radius: 999px;
-  font-size: 0.78rem;
-  font-weight: 500;
+  padding: 3px 9px;
+  border-radius: 0;
+  border: 1px solid;
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
 }
 
 .badge-red {
-  background: rgba(var(--accent-red-rgb), 0.15);
+  background: rgba(var(--accent-red-rgb), 0.08);
+  border-color: rgba(var(--accent-red-rgb), 0.4);
   color: var(--accent-red);
 }
 
 .badge-gold {
-  background: rgba(var(--accent-gold-rgb), 0.15);
+  background: rgba(var(--accent-gold-rgb), 0.08);
+  border-color: rgba(var(--accent-gold-rgb), 0.4);
   color: var(--accent-gold);
 }
 
 .badge-green {
-  background: rgba(var(--accent-green-rgb), 0.15);
+  background: rgba(var(--accent-green-rgb), 0.08);
+  border-color: rgba(var(--accent-green-rgb), 0.4);
   color: var(--accent-green);
 }
 
@@ -383,6 +480,8 @@ tbody tr:hover {
   gap: 12px;
   padding: 64px 24px;
   color: var(--text-secondary);
+  font-family: var(--font-mono);
+  font-size: 0.85rem;
 }
 
 .state-error {
@@ -398,31 +497,35 @@ tbody tr:hover {
 .settings-grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-  gap: 16px;
+  gap: 20px 18px;
 }
 
 .field {
   display: flex;
   flex-direction: column;
-  gap: 6px;
-  font-size: 0.85rem;
-  color: var(--text-secondary);
+  gap: 7px;
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--text-muted);
 }
 
 .field input[type='text'],
 .field input[type='number'] {
-  padding: 8px 12px;
-  border-radius: 8px;
+  padding: 10px 12px;
+  border-radius: 0;
   border: 1px solid var(--panel-border);
-  background: rgba(0, 0, 0, 0.2);
+  background: var(--bg-color);
   color: var(--text-primary);
+  font-family: var(--font-mono);
   font-size: 0.9rem;
 }
 
 .field input:focus {
-  outline: 2px solid var(--accent-gold);
-  outline-offset: 2px;
-  border-color: rgba(var(--accent-amethyst-rgb), 0.6);
+  outline: none;
+  border-color: var(--accent-gold);
+  box-shadow: 0 0 0 1px rgba(var(--accent-gold-rgb), 0.35);
 }
 
 @media (max-width: 700px) {
@@ -460,7 +563,18 @@ tbody tr:hover {
 .field-checkbox {
   flex-direction: row;
   align-items: center;
-  gap: 8px;
+  gap: 9px;
+  text-transform: none;
+  letter-spacing: normal;
+  font-family: var(--font-body);
+  font-size: 0.9rem;
+  color: var(--text-primary);
+}
+
+.field-checkbox input {
+  accent-color: var(--accent-amethyst);
+  width: 16px;
+  height: 16px;
 }
 
 .settings-footer {

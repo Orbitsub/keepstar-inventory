@@ -1,5 +1,6 @@
 import type { ZeroStockEntry } from '../api';
 import { formatIsk, formatNumber, formatDate } from '../format';
+import { copyToClipboard } from '../clipboard';
 import { EmptyState } from './StateViews';
 
 export function ZeroStockView({ items }: { items: ZeroStockEntry[] }) {
@@ -24,7 +25,17 @@ export function ZeroStockView({ items }: { items: ZeroStockEntry[] }) {
         <tbody>
           {items.map(item => (
             <tr key={item.type_id}>
-              <td className="cell-primary">{item.name}</td>
+              <td className="cell-primary">
+                <button
+                  type="button"
+                  className="item-copy-button"
+                  title="Copy item name"
+                  aria-label={`Copy ${item.name}`}
+                  onClick={() => void copyToClipboard(item.name)}
+                >
+                  {item.name}
+                </button>
+              </td>
               <td className="cell-muted">{item.category_name}</td>
               <td>
                 <span className={item.days_since_stockout > 7 ? 'badge badge-red' : 'badge badge-gold'}>

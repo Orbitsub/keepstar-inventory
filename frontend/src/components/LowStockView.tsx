@@ -1,5 +1,6 @@
 import type { LowStockEntry } from '../api';
 import { formatIsk, formatNumber, formatDuration, formatDate } from '../format';
+import { copyToClipboard } from '../clipboard';
 import { EmptyState } from './StateViews';
 
 const SEVERITY_LABEL: Record<LowStockEntry['severity'], string> = {
@@ -31,7 +32,17 @@ export function LowStockView({ items }: { items: LowStockEntry[] }) {
         <tbody>
           {items.map(item => (
             <tr key={item.type_id}>
-              <td className="cell-primary">{item.name}</td>
+              <td className="cell-primary">
+                <button
+                  type="button"
+                  className="item-copy-button"
+                  title="Copy item name"
+                  aria-label={`Copy ${item.name}`}
+                  onClick={() => void copyToClipboard(item.name)}
+                >
+                  {item.name}
+                </button>
+              </td>
               <td className="cell-muted">{item.category_name}</td>
               <td>
                 <span className={`badge badge-${item.severity === 'critical' ? 'red' : item.severity === 'warning' ? 'gold' : 'green'}`}>

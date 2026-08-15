@@ -7,6 +7,8 @@ export function MarginsView({ items }: { items: MarginEntry[] }) {
     return <EmptyState message="No margin data yet. Margins need both a structure price and a Jita source price." />;
   }
 
+  const sortedItems = [...items].sort((a, b) => a.name.localeCompare(b.name));
+
   return (
     <div className="table-wrap glass">
       <table>
@@ -27,7 +29,7 @@ export function MarginsView({ items }: { items: MarginEntry[] }) {
           </tr>
         </thead>
         <tbody>
-          {items.map(item => (
+          {sortedItems.map(item => (
             <tr key={item.type_id}>
               <td className="cell-primary">{item.name}</td>
               <td className="cell-muted">{item.category_name}</td>
