@@ -49,13 +49,13 @@ npm ci --prefix frontend
 
 The separate `npm ci` commands use the committed lockfiles and are best for a server deployment. `npm run install-all` is also available for a convenient non-reproducible development install.
 
-For a guided Ubuntu setup that installs prerequisites, asks for the EVE SSO values, builds both apps, and starts the production server:
+For a guided Ubuntu setup that installs prerequisites, asks for the EVE SSO values, builds both apps, and starts the production server under PM2:
 
 ```bash
-bash scripts/setup-ubuntu.sh
+bash scripts/setup.sh
 ```
 
-Run it from a user account with `sudo` access. The script keeps `backend/.env` mode `600`, preserves existing non-placeholder values, and starts the server only after the build succeeds.
+Run it from a user account with `sudo` access. The script keeps `backend/.env` mode `600`, preserves existing non-placeholder values, and starts the server only after the build succeeds. PM2 keeps the process running and restarts it after crashes.
 
 ## Configure EVE SSO
 
@@ -136,14 +136,62 @@ npm run build
 
 ## Production Run
 
-Build the frontend and backend, then start the backend from the repository root:
+Build the frontend and backend, then start the backend under PM2 from the repository root:
 
 ```bash
 npm run build
-npm start
+pm2 startOrRestart ecosystem.config.cjs --update-env
+pm2 save
 ```
 
-The production server listens on `PORT` from `backend/.env`, or port `3002` by default. When `frontend/dist` exists, the backend serves the built frontend and API routes from the same origin. Keep the frontend build available beside the backend deployment.
+The production server listens on `HOST` and `PORT` from `backend/.env`, defaulting to `127.0.0.1:3002`. When `frontend/dist` exists, the backend serves the built frontend and API routes from the same origin. Keep the frontend build available beside the backend deployment.
+
+Useful PM2 commands:
+
+```bash
+pm2 status
+pm2 logs keepstar-inventory
+pm2 restart keepstar-inventory
+pm2 stop keepstar-inventory
+```
+
+To start the app automatically after a server reboot, run the command printed by PM2, then save the process list:
+
+```bash
+pm2 startup systemd
+pm2 save
+```
+
+## Nginx Reverse Proxy
+
+Point Nginx at the local PM2-managed backend. Replace `inventory.example.com` with the public hostname, then create a server block such as `/etc/nginx/sites-available/keepstar-inventory`:
+
+```nginx
+server {
+  listen 80;
+  server_name inventory.example.com;
+
+  location / {
+    proxy_pass http://127.0.0.1:3002;
+    proxy_http_version 1.1;
+    proxy_set_header Host $host;
+    proxy_set_header X-Real-IP $remote_addr;
+    proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+    proxy_set_header X-Forwarded-Proto $scheme;
+    proxy_read_timeout 60s;
+  }
+}
+```
+
+Enable and verify the site, then reload Nginx:
+
+```bash
+sudo ln -s /etc/nginx/sites-available/keepstar-inventory /etc/nginx/sites-enabled/keepstar-inventory
+sudo nginx -t
+sudo systemctl reload nginx
+```
+
+If HTTPS is enabled on this server, use the existing certificate setup or Certbot for this hostname and set `ESI_CALLBACK_URL` to `https://inventory.example.com/api/auth/callback`. The EVE developer application callback URL must match it exactly. Keep the backend port private; Nginx should be the public entry point.
 
 For a reverse-proxy deployment:
 

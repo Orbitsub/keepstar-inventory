@@ -11,6 +11,7 @@ import { getZeroStockView, getLowStockView, getMarginView, getCategories } from 
 import { buildAuthorizeUrl, isValidState, exchangeCodeForToken, getAuthStatus, logout, isSsoConfigured } from './esiAuth';
 
 const PORT = parseInt(process.env.PORT || '3002', 10);
+const HOST = process.env.HOST || '127.0.0.1';
 const FRONTEND_DIST = path.join(__dirname, '..', '..', 'frontend', 'dist');
 
 const app = express();
@@ -155,8 +156,8 @@ if (fs.existsSync(FRONTEND_DIST)) {
   console.log(`Production frontend build not found at ${FRONTEND_DIST}. Running in API-only mode.`);
 }
 
-app.listen(PORT, () => {
-  console.log(`Keepstar Inventory Tracker backend listening on port ${PORT}`);
+app.listen(PORT, HOST, () => {
+  console.log(`Keepstar Inventory Tracker backend listening on ${HOST}:${PORT}`);
   startScheduler();
 });
 

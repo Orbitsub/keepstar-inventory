@@ -42,6 +42,14 @@ command -v npm >/dev/null 2>&1 || fail "npm is required. Install npm and rerun t
 node_version="$(node --version | sed 's/^v//')"
 version_at_least_22 "$node_version" || fail "Node.js 22+ is required; found v$node_version."
 
+if ! command -v pm2 >/dev/null 2>&1; then
+  log "Installing PM2"
+  if ! npm install --global pm2; then
+    command -v sudo >/dev/null 2>&1 || fail "PM2 is required. Install it with npm install --global pm2 and rerun this script."
+    sudo npm install --global pm2
+  fi
+fi
+
 log "Installing locked dependencies"
 cd "$ROOT_DIR"
 npm ci
@@ -84,5 +92,28 @@ log "Building frontend and backend"
 npm run build
 
 log "Starting Keepstar Inventory Tracker"
-printf 'Open the URL served by PORT in backend/.env after startup.\n'
-exec npm start
+server_port="$(sed -n 's/^PORT=//p' "$ENV_FILE" | tail -n 1)"
+server_port="${server_port:-3002}"
+
+pm2 startOrRestart "$ROOT_DIR/ecosystem.config.cjs" --update-env
+pm2 save
+
+for _ in {1..30}; do
+  server_pid="$(pm2 pid keepstar-inventory 2>/dev/null | tail -n 1)"
+  if [[ -z "$server_pid" || "$server_pid" == "0" ]] || ! kill -0 "$server_pid" 2>/dev/null; then
+    printf 'Error: server exited during startup. Check pm2 logs keepstar-inventory for details.\n' >&2
+    exit 1
+  fi
+
+  if (exec 3<>"/dev/tcp/127.0.0.1/$server_port") 2>/dev/null; then
+    exec 3>&-
+    printf 'Keepstar Inventory Tracker is running on port %s (PID %s).\n' "$server_port" "$server_pid"
+    printf 'Manage it with: pm2 status, pm2 logs keepstar-inventory, pm2 restart keepstar-inventory\n'
+    exit 0
+  fi
+  sleep 1
+done
+
+pm2 delete keepstar-inventory >/dev/null 2>&1 || true
+printf 'Error: server did not start listening on port %s. Check pm2 logs keepstar-inventory for details.\n' "$server_port" >&2
+exit 1
