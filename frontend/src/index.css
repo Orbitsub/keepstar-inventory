@@ -83,6 +83,11 @@ button, input, select {
   font-family: inherit;
 }
 
+:focus-visible {
+  outline: 2px solid var(--accent-gold);
+  outline-offset: 2px;
+}
+
 a {
   color: var(--accent-amethyst);
 }
@@ -205,6 +210,36 @@ a {
 
 .status-error .status-dot {
   background: var(--accent-red);
+}
+
+.auth-unavailable {
+  color: var(--text-muted);
+  font-size: 0.85rem;
+}
+
+.poll-error {
+  padding: 10px 14px;
+  border-left: 3px solid var(--accent-red);
+  background: rgba(var(--accent-red-rgb), 0.08);
+  color: var(--accent-red);
+  font-size: 0.85rem;
+}
+
+.app-notice {
+  padding: 10px 14px;
+  border: 1px solid var(--panel-border);
+  border-radius: 8px;
+  font-size: 0.9rem;
+}
+
+.app-notice-success {
+  color: var(--accent-green);
+  background: rgba(var(--accent-green-rgb), 0.1);
+}
+
+.app-notice-error {
+  color: var(--accent-red);
+  background: rgba(var(--accent-red-rgb), 0.1);
 }
 
 @keyframes pulse {
@@ -385,8 +420,41 @@ tbody tr:hover {
 }
 
 .field input:focus {
-  outline: none;
+  outline: 2px solid var(--accent-gold);
+  outline-offset: 2px;
   border-color: rgba(var(--accent-amethyst-rgb), 0.6);
+}
+
+@media (max-width: 700px) {
+  .app-shell {
+    padding: 12px 12px 40px;
+  }
+
+  .app-header {
+    padding: 16px;
+  }
+
+  .app-header-actions {
+    width: 100%;
+  }
+
+  .app-header-actions > * {
+    flex: 1 1 auto;
+    justify-content: center;
+  }
+
+  .app-tabs {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .app-tab {
+    justify-content: center;
+  }
+
+  .settings-form {
+    padding: 16px;
+  }
 }
 
 .field-checkbox {

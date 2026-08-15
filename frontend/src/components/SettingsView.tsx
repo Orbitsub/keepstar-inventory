@@ -14,15 +14,41 @@ export function SettingsView({ settings, onSaved }: SettingsViewProps) {
   const [saving, setSaving] = useState(false);
   const [savedMessage, setSavedMessage] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [validationError, setValidationError] = useState<string | null>(null);
 
   useEffect(() => setForm(settings), [settings]);
 
   function update<K extends keyof Settings>(key: K, value: Settings[K]) {
     setForm(prev => ({ ...prev, [key]: value }));
+    setValidationError(null);
+  }
+
+  function validate(): string | null {
+    if (form.structure_id && !/^\d+$/.test(form.structure_id.trim())) return 'Structure ID must contain only numbers.';
+    if (!Number.isInteger(form.poll_interval_minutes) || form.poll_interval_minutes < 5) return 'Poll interval must be at least 5 minutes.';
+    if (!Number.isFinite(form.time_to_empty_threshold_hours) || form.time_to_empty_threshold_hours < 1) return 'Low-stock threshold must be at least 1 hour.';
+    if (!Number.isInteger(form.sales_lookback_days) || form.sales_lookback_days < 1) return 'Sales lookback must be at least 1 day.';
+    if (!Number.isInteger(form.min_sample_size) || form.min_sample_size < 1) return 'Minimum sample size must be at least 1.';
+    if (form.discord_webhook) {
+      try {
+        const url = new URL(form.discord_webhook);
+        if (url.protocol !== 'https:' || !['discord.com', 'discordapp.com'].includes(url.hostname)) throw new Error();
+      } catch {
+        return 'Discord webhook must be an HTTPS discord.com URL, or left empty.';
+      }
+    }
+    return null;
   }
 
   async function handleSubmit(e: FormEvent) {
     e.preventDefault();
+    const validationMessage = validate();
+    if (validationMessage) {
+      setValidationError(validationMessage);
+      setError(null);
+      setSavedMessage(null);
+      return;
+    }
     setSaving(true);
     setError(null);
     setSavedMessage(null);
@@ -148,7 +174,7 @@ export function SettingsView({ settings, onSaved }: SettingsViewProps) {
         <label className="field">
           <span>Discord Webhook</span>
           <input
-            type="text"
+            type="url"
             value={form.discord_webhook ?? ''}
             onChange={e => update('discord_webhook', e.target.value)}
             placeholder="Optional"
@@ -171,6 +197,7 @@ export function SettingsView({ settings, onSaved }: SettingsViewProps) {
           Save Settings
         </button>
         {savedMessage && <span className="cell-positive">{savedMessage}</span>}
+        {validationError && <span className="cell-negative" role="alert">{validationError}</span>}
         {error && <span className="cell-negative">{error}</span>}
       </div>
     </form>

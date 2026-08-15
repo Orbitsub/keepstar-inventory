@@ -22,14 +22,17 @@ export default function App() {
 
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [statusError, setStatusError] = useState<string | null>(null);
+  const [loginMessage, setLoginMessage] = useState<string | null>(null);
   const [polling, setPolling] = useState(false);
 
   const refreshStatus = useCallback(async () => {
     try {
       const s = await api.getStatus();
       setStatus(s);
-    } catch {
-      // status polling failures are non-fatal; keep showing the last known status
+      setStatusError(null);
+    } catch (err) {
+      setStatusError(err instanceof Error ? err.message : 'Backend status is unavailable.');
     }
   }, []);
 
@@ -42,6 +45,14 @@ export default function App() {
       else if (tab === 'settings') setSettings(await api.getSettings());
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to load data.');
+    }
+  }, []);
+
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    if (params.get('loginSuccess') === '1') {
+      setLoginMessage('EVE login completed successfully.');
+      window.history.replaceState({}, document.title, window.location.pathname);
     }
   }, []);
 
@@ -76,8 +87,12 @@ export default function App() {
   }
 
   async function handleLogout() {
-    await api.logout();
-    await refreshStatus();
+    try {
+      await api.logout();
+      await refreshStatus();
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to log out.');
+    }
   }
 
   function handleSettingsSaved(updated: Partial<Settings>) {
@@ -94,9 +109,12 @@ export default function App() {
         onPollNow={handlePollNow}
         polling={polling}
         onLogout={handleLogout}
+        statusError={statusError}
       />
 
-      <main className="app-main">
+      <main className="app-main" aria-live="polite">
+        {loginMessage && <div className="app-notice app-notice-success" role="status">{loginMessage}</div>}
+        {statusError && <div className="app-notice app-notice-error" role="alert">{statusError}</div>}
         {loading && <LoadingState label="Loading data…" />}
         {!loading && error && <ErrorState message={error} />}
         {!loading && !error && activeTab === 'zero-stock' && zeroStock && <ZeroStockView items={zeroStock} />}

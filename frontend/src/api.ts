@@ -1,11 +1,19 @@
 const API_BASE = '/api';
 
 async function request<T>(path: string, options?: RequestInit): Promise<T> {
-  const res = await fetch(`${API_BASE}${path}`, {
-    headers: { 'Content-Type': 'application/json' },
-    ...options,
-  });
+  let res: Response;
+  try {
+    res = await fetch(`${API_BASE}${path}`, {
+      headers: { 'Content-Type': 'application/json' },
+      ...options,
+    });
+  } catch {
+    throw new Error('Unable to reach the backend. Check that the server is running and try again.');
+  }
   if (!res.ok) {
+    if (res.status === 401 || res.status === 403) {
+      throw new Error('Your session is no longer authorized. Log in with EVE again.');
+    }
     const body = await res.json().catch(() => ({}));
     throw new Error(body.message || `Request failed: ${res.status}`);
   }

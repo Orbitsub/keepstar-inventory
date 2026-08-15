@@ -11,6 +11,7 @@ interface HeaderProps {
   onPollNow: () => void;
   polling: boolean;
   onLogout: () => void;
+  statusError: string | null;
 }
 
 const TABS: { id: Tab; label: string; icon: typeof Boxes }[] = [
@@ -20,8 +21,9 @@ const TABS: { id: Tab; label: string; icon: typeof Boxes }[] = [
   { id: 'settings', label: 'Settings', icon: SettingsIcon },
 ];
 
-export function Header({ status, activeTab, onTabChange, onPollNow, polling, onLogout }: HeaderProps) {
+export function Header({ status, activeTab, onTabChange, onPollNow, polling, onLogout, statusError }: HeaderProps) {
   const auth = status?.auth;
+  const pollFailed = status?.lastPollStatus === 'error';
 
   return (
     <header className="app-header glass">
@@ -34,9 +36,9 @@ export function Header({ status, activeTab, onTabChange, onPollNow, polling, onL
         </div>
 
         <div className="app-header-actions">
-          <div className={`status-pill ${status?.isRunning ? 'status-running' : status?.lastPollStatus === 'error' ? 'status-error' : 'status-ok'}`}>
+          <div className={`status-pill ${statusError ? 'status-error' : status?.isRunning ? 'status-running' : pollFailed ? 'status-error' : 'status-ok'}`}>
             <span className="status-dot" />
-            {status?.isRunning ? 'Polling…' : `Last poll: ${formatRelativeTime(status?.lastPollTime)}`}
+            {statusError ? 'Backend unavailable' : status?.isRunning ? 'Polling…' : `Last poll: ${status?.lastPollTime ? formatRelativeTime(status.lastPollTime) : 'Not run yet'}`}
           </div>
 
           <button className="btn btn-primary" onClick={onPollNow} disabled={polling || status?.isRunning}>
@@ -50,6 +52,8 @@ export function Header({ status, activeTab, onTabChange, onPollNow, polling, onL
               {auth.characterName}
               <LogOut size={14} />
             </button>
+          ) : statusError || auth?.ssoConfigured === false ? (
+            <span className="auth-unavailable" title="Configure ESI_CLIENT_ID, ESI_CLIENT_SECRET, and ESI_CALLBACK_URL on the backend.">EVE login unavailable</span>
           ) : (
             <a className="btn btn-ghost" href="/api/auth/login">
               <LogIn size={16} />
@@ -59,6 +63,10 @@ export function Header({ status, activeTab, onTabChange, onPollNow, polling, onL
         </div>
       </div>
 
+      {pollFailed && status?.lastError && (
+        <div className="poll-error" role="alert">{status.lastError}</div>
+      )}
+
       <nav className="app-tabs">
         {TABS.map(tab => {
           const Icon = tab.icon;
@@ -66,6 +74,7 @@ export function Header({ status, activeTab, onTabChange, onPollNow, polling, onL
             <button
               key={tab.id}
               className={`app-tab ${activeTab === tab.id ? 'app-tab-active' : ''}`}
+              aria-current={activeTab === tab.id ? 'page' : undefined}
               onClick={() => onTabChange(tab.id)}
             >
               <Icon size={16} />
