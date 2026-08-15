@@ -1,6 +1,7 @@
 import axios from 'axios';
 import { dbHelper, ItemMeta } from './database';
 import { getValidAccessToken } from './esiAuth';
+import { notifyPollFailure, notifyPollSuccess } from './discord';
 
 const ESI_BASE_URL = 'https://esi.evetech.net/latest';
 const USER_AGENT = 'Keepstar-Inventory-Tracker/1.0.0 (chris@gemini-agent.local)';
@@ -199,6 +200,7 @@ export async function pollMarket(): Promise<void> {
     scannerStatus.ordersSeen = orders.length;
     scannerStatus.itemsTracked = baselineItems.length;
     scannerStatus.baselineCount = baselineItems.length;
+    await notifyPollSuccess(settings.discord_webhook);
 
     if (isFirstPoll) {
       console.log(`Baseline established with ${baselineItems.length} items.`);
@@ -209,6 +211,7 @@ export async function pollMarket(): Promise<void> {
     dbHelper.finishPoll(pollId, finishedAt, 'error', 0, 0, error.message || String(error));
     scannerStatus.lastPollTime = finishedAt;
     scannerStatus.lastPollStatus = 'error';
+    await notifyPollFailure(settings.discord_webhook, error.message || String(error));
   } finally {
     scannerStatus.isRunning = false;
   }
