@@ -170,11 +170,16 @@ Verify the numeric structure ID and that the logged-in character has access. Als
 
 Check that the backend is running on port 3002 during development, or that the reverse proxy forwards the configured production `PORT`.
 
-## Project Layout
+## Production Serving Check
 
-```text
-backend/    Express API, SQLite persistence, ESI polling, scheduler, notifications
-frontend/   React + Vite dashboard
-backend/.env.example
-README.md
-```
+After `npm run build`, the compiled backend serves the frontend from `frontend/dist`:
+
+- `GET /` returns the built app with HTTP 200.
+- `GET /api/status` returns JSON with HTTP 200.
+
+If `frontend/dist` is unavailable, the backend intentionally runs in API-only mode:
+
+- `GET /api/status` continues to return JSON with HTTP 200.
+- Browser routes such as `GET /` return a non-success response because no frontend assets are available.
+
+Keep `frontend/dist` deployed alongside `backend/dist` when serving the complete application.
