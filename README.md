@@ -22,23 +22,32 @@ Keepstar Inventory Tracker watches sell orders in an EVE Online Upwell structure
 
 ## Requirements
 
-- Node.js 22 or newer
+- Ubuntu 22.04 or newer
+- Node.js 22 LTS or newer
 - npm
 - An EVE Online developer application for SSO login
 - Access to the target structure's market orders
 
-`better-sqlite3` is compiled for modern Node releases. Node 22+ avoids the unsupported runtime/toolchain combination seen with older project setups.
+`better-sqlite3` is a native Node dependency. Install the Ubuntu build prerequisites so npm can compile it if a prebuilt binary is unavailable:
+
+```bash
+sudo apt update
+sudo apt install -y build-essential python3
+```
+
+Node 22 LTS is the recommended runtime for the server. Use a version manager such as `nvm` or your distribution's supported Node repository rather than the old Ubuntu Node package.
 
 ## Install
 
 From the repository root:
 
-```powershell
-npm install
-npm run install-all
+```bash
+npm ci
+npm ci --prefix backend
+npm ci --prefix frontend
 ```
 
-The `install-all` script installs the root, backend, and frontend dependencies. The separate commands are useful when diagnosing an install failure.
+The separate `npm ci` commands use the committed lockfiles and are best for a server deployment. `npm run install-all` is also available for a convenient non-reproducible development install.
 
 ## Configure EVE SSO
 
@@ -49,8 +58,9 @@ The `install-all` script installs the root, backend, and frontend dependencies. 
 3. Ensure the application grants the scope `esi-markets.structure_markets.v1`.
 4. Copy the template and fill in the application values:
 
-```powershell
-Copy-Item backend/.env.example backend/.env
+```bash
+cp backend/.env.example backend/.env
+chmod 600 backend/.env
 ```
 
 Set these values in `backend/.env`:
@@ -68,7 +78,7 @@ Never commit `backend/.env`. It is ignored by git. Keep the client secret privat
 
 Start both services from the repository root:
 
-```powershell
+```bash
 npm run dev
 ```
 
@@ -81,7 +91,7 @@ The frontend proxies `/api` requests to the backend. Open the Vite URL, choose *
 
 To run services separately:
 
-```powershell
+```bash
 npm run dev --prefix backend
 npm run dev --prefix frontend
 ```
@@ -104,7 +114,7 @@ Leave the field empty to disable notifications. Invalid or non-Discord URLs are 
 
 Run the backend test suite:
 
-```powershell
+```bash
 npm test --prefix backend
 ```
 
@@ -112,7 +122,7 @@ The tests cover settings persistence, metric calculations, EVE SSO token behavio
 
 Build both applications:
 
-```powershell
+```bash
 npm run build
 ```
 
@@ -120,7 +130,7 @@ npm run build
 
 Build the frontend and backend, then start the backend from the repository root:
 
-```powershell
+```bash
 npm run build
 npm start
 ```
