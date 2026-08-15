@@ -49,6 +49,14 @@ npm ci --prefix frontend
 
 The separate `npm ci` commands use the committed lockfiles and are best for a server deployment. `npm run install-all` is also available for a convenient non-reproducible development install.
 
+For a guided Ubuntu setup that installs prerequisites, asks for the EVE SSO values, builds both apps, and starts the production server:
+
+```bash
+bash scripts/setup-ubuntu.sh
+```
+
+Run it from a user account with `sudo` access. The script keeps `backend/.env` mode `600`, preserves existing non-placeholder values, and starts the server only after the build succeeds.
+
 ## Configure EVE SSO
 
 1. Create or open an application at [EVE Developers](https://developers.eveonline.com/applications).
