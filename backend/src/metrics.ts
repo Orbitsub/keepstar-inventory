@@ -230,3 +230,82 @@ export function getCategories(): string[] {
   }
   return Array.from(set).sort();
 }
+
+export interface ArbitrageEntry {
+  type_id: number;
+  name: string;
+  category_name: string;
+  primary_quantity: number;
+  primary_price: number;
+  secondary_quantity: number;
+  secondary_price: number;
+  buy_at: 'primary' | 'secondary';
+  sell_at: 'primary' | 'secondary';
+  buy_price: number;
+  sell_price: number;
+  fees_per_unit: number;
+  net_profit_per_unit: number;
+  margin_pct: number;
+  tradable_quantity: number;
+  total_potential_profit: number;
+}
+
+/**
+ * Compares current sell prices between the primary structure and the alliance's secondary
+ * keepstar for every item listed in both, and surfaces buy-low/sell-high opportunities.
+ * Hauling cost is assumed to be zero (self-transported); only sales tax + broker fee apply.
+ */
+export function getArbitrageView(): ArbitrageEntry[] {
+  const settings = dbHelper.getSettings();
+  if (!settings.secondary_structure_id) return [];
+
+  const secondaryPrices = new Map(dbHelper.getAllSecondaryPrices().map(p => [p.type_id, p]));
+  if (secondaryPrices.size === 0) return [];
+
+  const baselineItems = dbHelper.getBaselineItems();
+  const results: ArbitrageEntry[] = [];
+
+  for (const baseline of baselineItems) {
+    const primary = dbHelper.getLatestSnapshot(baseline.type_id);
+    const secondary = secondaryPrices.get(baseline.type_id);
+    if (!primary || !secondary) continue;
+    if (primary.quantity <= 0 || secondary.quantity <= 0) continue;
+    if (primary.min_sell_price === null || secondary.min_sell_price === null) continue;
+
+    const buyAt: 'primary' | 'secondary' = primary.min_sell_price <= secondary.min_sell_price ? 'primary' : 'secondary';
+    const sellAt: 'primary' | 'secondary' = buyAt === 'primary' ? 'secondary' : 'primary';
+    const buyPrice = buyAt === 'primary' ? primary.min_sell_price : secondary.min_sell_price;
+    const sellPrice = sellAt === 'primary' ? primary.min_sell_price : secondary.min_sell_price;
+    const buyQuantityAvailable = buyAt === 'primary' ? primary.quantity : secondary.quantity;
+
+    const feesPerUnit = sellPrice * ((settings.sales_tax_pct + settings.broker_fee_pct) / 100);
+    const netProfitPerUnit = sellPrice - buyPrice - feesPerUnit;
+    if (netProfitPerUnit <= 0) continue;
+
+    const meta = dbHelper.getItemMeta(baseline.type_id) || emptyMeta(baseline.type_id);
+    const marginPct = sellPrice > 0 ? (netProfitPerUnit / sellPrice) * 100 : 0;
+    const tradableQuantity = buyQuantityAvailable;
+
+    results.push({
+      type_id: baseline.type_id,
+      name: meta.name,
+      category_name: meta.category_name || 'Uncategorized',
+      primary_quantity: primary.quantity,
+      primary_price: primary.min_sell_price,
+      secondary_quantity: secondary.quantity,
+      secondary_price: secondary.min_sell_price,
+      buy_at: buyAt,
+      sell_at: sellAt,
+      buy_price: buyPrice,
+      sell_price: sellPrice,
+      fees_per_unit: feesPerUnit,
+      net_profit_per_unit: netProfitPerUnit,
+      margin_pct: marginPct,
+      tradable_quantity: tradableQuantity,
+      total_potential_profit: netProfitPerUnit * tradableQuantity,
+    });
+  }
+
+  results.sort((a, b) => b.total_potential_profit - a.total_potential_profit);
+  return results;
+}

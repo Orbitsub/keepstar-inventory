@@ -1,11 +1,12 @@
 import { useCallback, useEffect, useState } from 'react';
 import { api } from './api';
-import type { Status, Settings, ZeroStockEntry, LowStockEntry, MarginEntry } from './api';
+import type { Status, Settings, ZeroStockEntry, LowStockEntry, MarginEntry, ArbitrageEntry } from './api';
 import { Header } from './components/Header';
 import type { Tab } from './components/Header';
 import { ZeroStockView } from './components/ZeroStockView';
 import { LowStockView } from './components/LowStockView';
 import { MarginsView } from './components/MarginsView';
+import { ArbitrageView } from './components/ArbitrageView';
 import { SettingsView } from './components/SettingsView';
 import { LoadingState, ErrorState } from './components/StateViews';
 
@@ -19,6 +20,7 @@ export default function App() {
   const [zeroStock, setZeroStock] = useState<ZeroStockEntry[] | null>(null);
   const [lowStock, setLowStock] = useState<LowStockEntry[] | null>(null);
   const [margins, setMargins] = useState<MarginEntry[] | null>(null);
+  const [arbitrage, setArbitrage] = useState<ArbitrageEntry[] | null>(null);
 
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -42,6 +44,7 @@ export default function App() {
       if (tab === 'zero-stock') setZeroStock(await api.getZeroStock());
       else if (tab === 'low-stock') setLowStock(await api.getLowStock());
       else if (tab === 'margins') setMargins(await api.getMargins());
+      else if (tab === 'arbitrage') setArbitrage(await api.getArbitrage());
       else if (tab === 'settings') setSettings(await api.getSettings());
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to load data.');
@@ -120,6 +123,7 @@ export default function App() {
         {!loading && !error && activeTab === 'zero-stock' && zeroStock && <ZeroStockView items={zeroStock} />}
         {!loading && !error && activeTab === 'low-stock' && lowStock && <LowStockView items={lowStock} />}
         {!loading && !error && activeTab === 'margins' && margins && <MarginsView items={margins} />}
+        {!loading && !error && activeTab === 'arbitrage' && arbitrage && <ArbitrageView items={arbitrage} />}
         {!loading && !error && activeTab === 'settings' && settings && (
           <SettingsView settings={settings} onSaved={handleSettingsSaved} />
         )}

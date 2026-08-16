@@ -57,6 +57,8 @@ export interface Settings {
   id: number;
   structure_id: string;
   structure_name: string | null;
+  secondary_structure_id: string;
+  secondary_structure_name: string | null;
   poll_interval_minutes: number;
   time_to_empty_threshold_hours: number;
   sales_lookback_days: number;
@@ -109,6 +111,25 @@ export interface MarginEntry {
   time_to_empty_hours: number | null;
 }
 
+export interface ArbitrageEntry {
+  type_id: number;
+  name: string;
+  category_name: string;
+  primary_quantity: number;
+  primary_price: number;
+  secondary_quantity: number;
+  secondary_price: number;
+  buy_at: 'primary' | 'secondary';
+  sell_at: 'primary' | 'secondary';
+  buy_price: number;
+  sell_price: number;
+  fees_per_unit: number;
+  net_profit_per_unit: number;
+  margin_pct: number;
+  tradable_quantity: number;
+  total_potential_profit: number;
+}
+
 export const api = {
   getStatus: () => request<Status>('/status'),
   triggerPoll: () => request<{ message: string }>('/polls', { method: 'POST' }),
@@ -116,6 +137,7 @@ export const api = {
   getZeroStock: () => request<ZeroStockEntry[]>('/zero-stock'),
   getLowStock: () => request<LowStockEntry[]>('/low-stock'),
   getMargins: () => request<MarginEntry[]>('/margins'),
+  getArbitrage: () => request<ArbitrageEntry[]>('/arbitrage'),
   getCategories: () => request<string[]>('/categories'),
   getSettings: () => request<Settings>('/settings'),
   updateSettings: (partial: Partial<Omit<Settings, 'id'>>) =>

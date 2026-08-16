@@ -7,7 +7,7 @@ import cors from 'cors';
 import fs from 'fs';
 import { dbHelper, Settings } from './database';
 import { pollMarket, startScheduler, stopScheduler, scannerStatus } from './scanner';
-import { getZeroStockView, getLowStockView, getMarginView, getCategories } from './metrics';
+import { getZeroStockView, getLowStockView, getMarginView, getArbitrageView, getCategories } from './metrics';
 import { buildAuthorizeUrl, isValidState, exchangeCodeForToken, getAuthStatus, logout, isSsoConfigured } from './esiAuth';
 
 const PORT = parseInt(process.env.PORT || '3002', 10);
@@ -60,6 +60,10 @@ app.get('/api/margins', (req, res) => {
   res.json(getMarginView());
 });
 
+app.get('/api/arbitrage', (req, res) => {
+  res.json(getArbitrageView());
+});
+
 app.get('/api/categories', (req, res) => {
   res.json(getCategories());
 });
@@ -78,7 +82,8 @@ app.get('/api/settings', (req, res) => {
 
 app.put('/api/settings', (req, res) => {
   const {
-    structure_id, structure_name, poll_interval_minutes, time_to_empty_threshold_hours,
+    structure_id, structure_name, secondary_structure_id, secondary_structure_name,
+    poll_interval_minutes, time_to_empty_threshold_hours,
     sales_lookback_days, min_sample_size, hauling_isk_per_m3, sales_tax_pct, broker_fee_pct,
     discord_webhook, is_active
   } = req.body;
@@ -88,6 +93,8 @@ app.put('/api/settings', (req, res) => {
 
   if (structure_id !== undefined) updateData.structure_id = structure_id;
   if (structure_name !== undefined) updateData.structure_name = structure_name;
+  if (secondary_structure_id !== undefined) updateData.secondary_structure_id = secondary_structure_id;
+  if (secondary_structure_name !== undefined) updateData.secondary_structure_name = secondary_structure_name;
   if (poll_interval_minutes !== undefined) updateData.poll_interval_minutes = parseInt(poll_interval_minutes, 10);
   if (time_to_empty_threshold_hours !== undefined) updateData.time_to_empty_threshold_hours = parseFloat(time_to_empty_threshold_hours);
   if (sales_lookback_days !== undefined) updateData.sales_lookback_days = parseInt(sales_lookback_days, 10);

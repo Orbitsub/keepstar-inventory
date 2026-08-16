@@ -17,6 +17,8 @@ db.exec(`
     id INTEGER PRIMARY KEY CHECK (id = 1),
     structure_id TEXT NOT NULL DEFAULT '',
     structure_name TEXT,
+    secondary_structure_id TEXT NOT NULL DEFAULT '',
+    secondary_structure_name TEXT,
     poll_interval_minutes INTEGER NOT NULL DEFAULT 60,
     time_to_empty_threshold_hours REAL NOT NULL DEFAULT 48,
     sales_lookback_days INTEGER NOT NULL DEFAULT 14,
@@ -81,15 +83,32 @@ db.exec(`
     buy_price REAL,
     last_updated TEXT
   );
+
+  CREATE TABLE IF NOT EXISTS secondary_market_prices (
+    type_id INTEGER PRIMARY KEY,
+    quantity INTEGER NOT NULL,
+    min_sell_price REAL,
+    polled_at TEXT NOT NULL
+  );
 `);
+
+// Migrate settings tables created before secondary structure support existed
+const settingsColumns = (db.prepare('PRAGMA table_info(settings)').all() as { name: string }[]).map(c => c.name);
+if (!settingsColumns.includes('secondary_structure_id')) {
+  db.exec(`ALTER TABLE settings ADD COLUMN secondary_structure_id TEXT NOT NULL DEFAULT ''`);
+}
+if (!settingsColumns.includes('secondary_structure_name')) {
+  db.exec(`ALTER TABLE settings ADD COLUMN secondary_structure_name TEXT`);
+}
 
 // Seed the single settings row on first run
 const settingsRow = db.prepare('SELECT id FROM settings WHERE id = 1').get();
 if (!settingsRow) {
   db.prepare(`
-    INSERT INTO settings (id, structure_id, structure_name, poll_interval_minutes, time_to_empty_threshold_hours,
+    INSERT INTO settings (id, structure_id, structure_name, secondary_structure_id, secondary_structure_name,
+      poll_interval_minutes, time_to_empty_threshold_hours,
       sales_lookback_days, min_sample_size, hauling_isk_per_m3, sales_tax_pct, broker_fee_pct, discord_webhook, is_active)
-    VALUES (1, '1051567430261', NULL, 60, 48, 14, 3, 1000, 3.6, 2.5, NULL, 1)
+    VALUES (1, '1051567430261', NULL, '', NULL, 60, 48, 14, 3, 1000, 3.6, 2.5, NULL, 1)
   `).run();
 }
 
@@ -103,6 +122,8 @@ export interface Settings {
   id: number;
   structure_id: string;
   structure_name: string | null;
+  secondary_structure_id: string;
+  secondary_structure_name: string | null;
   poll_interval_minutes: number;
   time_to_empty_threshold_hours: number;
   sales_lookback_days: number;
@@ -161,6 +182,13 @@ export interface JitaPrice {
   last_updated: string;
 }
 
+export interface SecondaryMarketPrice {
+  type_id: number;
+  quantity: number;
+  min_sell_price: number | null;
+  polled_at: string;
+}
+
 export const dbHelper = {
   getSettings(): Settings {
     return db.prepare('SELECT * FROM settings WHERE id = 1').get() as Settings;
@@ -170,12 +198,14 @@ export const dbHelper = {
     const current = dbHelper.getSettings();
     const merged = { ...current, ...partial };
     db.prepare(`
-      UPDATE settings SET structure_id = ?, structure_name = ?, poll_interval_minutes = ?, time_to_empty_threshold_hours = ?,
+      UPDATE settings SET structure_id = ?, structure_name = ?, secondary_structure_id = ?, secondary_structure_name = ?,
+        poll_interval_minutes = ?, time_to_empty_threshold_hours = ?,
         sales_lookback_days = ?, min_sample_size = ?, hauling_isk_per_m3 = ?, sales_tax_pct = ?, broker_fee_pct = ?,
         discord_webhook = ?, is_active = ?
       WHERE id = 1
     `).run(
-      merged.structure_id, merged.structure_name, merged.poll_interval_minutes, merged.time_to_empty_threshold_hours,
+      merged.structure_id, merged.structure_name, merged.secondary_structure_id, merged.secondary_structure_name,
+      merged.poll_interval_minutes, merged.time_to_empty_threshold_hours,
       merged.sales_lookback_days, merged.min_sample_size, merged.hauling_isk_per_m3, merged.sales_tax_pct, merged.broker_fee_pct,
       merged.discord_webhook, merged.is_active
     );
@@ -295,6 +325,32 @@ export const dbHelper = {
       ON CONFLICT(type_id) DO UPDATE SET sell_price = excluded.sell_price, buy_price = excluded.buy_price,
         last_updated = excluded.last_updated
     `).run(price);
+  },
+
+  getSecondaryPrice(typeId: number): SecondaryMarketPrice | undefined {
+    return db.prepare('SELECT * FROM secondary_market_prices WHERE type_id = ?').get(typeId) as SecondaryMarketPrice | undefined;
+  },
+
+  getAllSecondaryPrices(): SecondaryMarketPrice[] {
+    return db.prepare('SELECT * FROM secondary_market_prices').all() as SecondaryMarketPrice[];
+  },
+
+  upsertSecondaryPrice(price: SecondaryMarketPrice): void {
+    db.prepare(`
+      INSERT INTO secondary_market_prices (type_id, quantity, min_sell_price, polled_at)
+      VALUES (@type_id, @quantity, @min_sell_price, @polled_at)
+      ON CONFLICT(type_id) DO UPDATE SET quantity = excluded.quantity, min_sell_price = excluded.min_sell_price,
+        polled_at = excluded.polled_at
+    `).run(price);
+  },
+
+  clearSecondaryPricesNotIn(typeIds: number[]): void {
+    if (typeIds.length === 0) {
+      db.prepare('DELETE FROM secondary_market_prices').run();
+      return;
+    }
+    const placeholders = typeIds.map(() => '?').join(',');
+    db.prepare(`DELETE FROM secondary_market_prices WHERE type_id NOT IN (${placeholders})`).run(...typeIds);
   },
 };
 

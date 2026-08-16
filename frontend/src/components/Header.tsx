@@ -1,8 +1,8 @@
-import { Boxes, TrendingDown, Coins, Settings as SettingsIcon, RefreshCw, LogIn, LogOut, User } from 'lucide-react';
+import { Boxes, TrendingDown, Coins, ArrowLeftRight, Settings as SettingsIcon, RefreshCw, LogIn, LogOut, User } from 'lucide-react';
 import type { Status } from '../api';
 import { formatRelativeTime } from '../format';
 
-export type Tab = 'zero-stock' | 'low-stock' | 'margins' | 'settings';
+export type Tab = 'zero-stock' | 'low-stock' | 'margins' | 'arbitrage' | 'settings';
 
 interface HeaderProps {
   status: Status | null;
@@ -18,6 +18,7 @@ const TABS: { id: Tab; label: string; icon: typeof Boxes }[] = [
   { id: 'zero-stock', label: 'Zero Stock', icon: Boxes },
   { id: 'low-stock', label: 'Low Stock', icon: TrendingDown },
   { id: 'margins', label: 'Margins', icon: Coins },
+  { id: 'arbitrage', label: 'Arbitrage', icon: ArrowLeftRight },
   { id: 'settings', label: 'Settings', icon: SettingsIcon },
 ];
 

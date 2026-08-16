@@ -42,30 +42,28 @@
   padding: 0;
 }
 
+html, body, #root {
+  height: 100%;
+}
+
 body {
   font-family: var(--font-body);
   background-color: var(--bg-color);
   background-image: var(--bg-gradient);
   color: var(--text-primary);
-  min-height: 100vh;
-  overflow-x: hidden;
+  overflow: hidden;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
 
-::-webkit-scrollbar {
-  width: 8px;
-  height: 8px;
+/* Scrollbars are hidden throughout the app (target: 1920x1080, no visible
+   scrollbars) while the underlying elements remain scrollable if needed. */
+* {
+  scrollbar-width: none;
+  -ms-overflow-style: none;
 }
-::-webkit-scrollbar-track {
-  background: rgba(0, 0, 0, 0.3);
-}
-::-webkit-scrollbar-thumb {
-  background: rgba(255, 180, 84, 0.18);
-  border-radius: 0;
-}
-::-webkit-scrollbar-thumb:hover {
-  background: rgba(255, 180, 84, 0.32);
+*::-webkit-scrollbar {
+  display: none;
 }
 
 /* --- Panel / signature corner-bracket accent ---
@@ -128,11 +126,13 @@ a {
 
 .app-shell {
   max-width: 1400px;
+  height: 100vh;
   margin: 0 auto;
-  padding: 24px 32px 64px;
+  padding: 24px 32px;
   display: flex;
   flex-direction: column;
   gap: 24px;
+  overflow: hidden;
 }
 
 .app-header {
@@ -219,6 +219,8 @@ a {
   display: flex;
   flex-direction: column;
   gap: 16px;
+  flex: 1 1 auto;
+  min-height: 0;
 }
 
 /* --- Status pill --- */
@@ -368,7 +370,9 @@ a {
 /* --- Tables --- */
 
 .table-wrap {
-  overflow-x: auto;
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow: auto;
   padding: 2px;
 }
 

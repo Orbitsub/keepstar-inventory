@@ -205,6 +205,8 @@ export async function pollMarket(): Promise<void> {
     if (isFirstPoll) {
       console.log(`Baseline established with ${baselineItems.length} items.`);
     }
+
+    await pollSecondaryMarket();
   } catch (error: any) {
     const finishedAt = new Date().toISOString();
     logError(error, 'pollMarket');
@@ -214,6 +216,44 @@ export async function pollMarket(): Promise<void> {
     await notifyPollFailure(settings.discord_webhook, error.message || String(error));
   } finally {
     scannerStatus.isRunning = false;
+  }
+}
+
+/**
+ * Fetches current sell orders from the alliance's other keepstar and stores the latest
+ * quantity/price per item, for arbitrage comparison against the primary structure. No-op
+ * if no secondary structure is configured. Errors are logged but don't fail the main poll.
+ */
+export async function pollSecondaryMarket(): Promise<void> {
+  const settings = dbHelper.getSettings();
+  if (!settings.secondary_structure_id) return;
+
+  const accessToken = await getValidAccessToken();
+  if (!accessToken) return;
+
+  try {
+    const orders = await fetchAllStructureOrders(settings.secondary_structure_id, accessToken);
+    const sellOrders = orders.filter(o => !o.is_buy_order);
+
+    const perItem = new Map<number, { quantity: number; minPrice: number }>();
+    for (const order of sellOrders) {
+      const existing = perItem.get(order.type_id);
+      if (existing) {
+        existing.quantity += order.volume_remain;
+        existing.minPrice = Math.min(existing.minPrice, order.price);
+      } else {
+        perItem.set(order.type_id, { quantity: order.volume_remain, minPrice: order.price });
+      }
+    }
+
+    const polledAt = new Date().toISOString();
+    for (const [typeId, item] of perItem) {
+      dbHelper.upsertSecondaryPrice({ type_id: typeId, quantity: item.quantity, min_sell_price: item.minPrice, polled_at: polledAt });
+      await resolveItemMetaIfStale(typeId);
+    }
+    dbHelper.clearSecondaryPricesNotIn(Array.from(perItem.keys()));
+  } catch (error: any) {
+    logError(error, 'pollSecondaryMarket');
   }
 }
 

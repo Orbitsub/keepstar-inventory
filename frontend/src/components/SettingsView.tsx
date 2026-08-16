@@ -25,6 +25,7 @@ export function SettingsView({ settings, onSaved }: SettingsViewProps) {
 
   function validate(): string | null {
     if (form.structure_id && !/^\d+$/.test(form.structure_id.trim())) return 'Structure ID must contain only numbers.';
+    if (form.secondary_structure_id && !/^\d+$/.test(form.secondary_structure_id.trim())) return 'Secondary Structure ID must contain only numbers.';
     if (!Number.isInteger(form.poll_interval_minutes) || form.poll_interval_minutes < 5) return 'Poll interval must be at least 5 minutes.';
     if (!Number.isFinite(form.time_to_empty_threshold_hours) || form.time_to_empty_threshold_hours < 1) return 'Low-stock threshold must be at least 1 hour.';
     if (!Number.isInteger(form.sales_lookback_days) || form.sales_lookback_days < 1) return 'Sales lookback must be at least 1 day.';
@@ -56,6 +57,8 @@ export function SettingsView({ settings, onSaved }: SettingsViewProps) {
       await api.updateSettings({
         structure_id: form.structure_id,
         structure_name: form.structure_name,
+        secondary_structure_id: form.secondary_structure_id,
+        secondary_structure_name: form.secondary_structure_name,
         poll_interval_minutes: form.poll_interval_minutes,
         time_to_empty_threshold_hours: form.time_to_empty_threshold_hours,
         sales_lookback_days: form.sales_lookback_days,
@@ -94,6 +97,26 @@ export function SettingsView({ settings, onSaved }: SettingsViewProps) {
             type="text"
             value={form.structure_name ?? ''}
             onChange={e => update('structure_name', e.target.value)}
+            placeholder="Optional label"
+          />
+        </label>
+
+        <label className="field">
+          <span>Secondary Structure ID</span>
+          <input
+            type="text"
+            value={form.secondary_structure_id}
+            onChange={e => update('secondary_structure_id', e.target.value)}
+            placeholder="Alliance keepstar for arbitrage"
+          />
+        </label>
+
+        <label className="field">
+          <span>Secondary Structure Name</span>
+          <input
+            type="text"
+            value={form.secondary_structure_name ?? ''}
+            onChange={e => update('secondary_structure_name', e.target.value)}
             placeholder="Optional label"
           />
         </label>
