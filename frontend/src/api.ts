@@ -128,6 +128,7 @@ export interface ArbitrageEntry {
   margin_pct: number;
   tradable_quantity: number;
   total_potential_profit: number;
+  packaged_volume: number | null;
 }
 
 export const api = {

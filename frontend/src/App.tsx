@@ -7,6 +7,7 @@ import { ZeroStockView } from './components/ZeroStockView';
 import { LowStockView } from './components/LowStockView';
 import { MarginsView } from './components/MarginsView';
 import { ArbitrageView } from './components/ArbitrageView';
+import { CargoFlowView } from './components/CargoFlowView';
 import { SettingsView } from './components/SettingsView';
 import { LoadingState, ErrorState } from './components/StateViews';
 
@@ -45,6 +46,7 @@ export default function App() {
       else if (tab === 'low-stock') setLowStock(await api.getLowStock());
       else if (tab === 'margins') setMargins(await api.getMargins());
       else if (tab === 'arbitrage') setArbitrage(await api.getArbitrage());
+      else if (tab === 'cargo-flow') setArbitrage(await api.getArbitrage());
       else if (tab === 'settings') setSettings(await api.getSettings());
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to load data.');
@@ -124,6 +126,7 @@ export default function App() {
         {!loading && !error && activeTab === 'low-stock' && lowStock && <LowStockView items={lowStock} />}
         {!loading && !error && activeTab === 'margins' && margins && <MarginsView items={margins} />}
         {!loading && !error && activeTab === 'arbitrage' && arbitrage && <ArbitrageView items={arbitrage} />}
+        {!loading && !error && activeTab === 'cargo-flow' && arbitrage && <CargoFlowView items={arbitrage} />}
         {!loading && !error && activeTab === 'settings' && settings && (
           <SettingsView settings={settings} onSaved={handleSettingsSaved} />
         )}

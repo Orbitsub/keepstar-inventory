@@ -248,6 +248,7 @@ export interface ArbitrageEntry {
   margin_pct: number;
   tradable_quantity: number;
   total_potential_profit: number;
+  packaged_volume: number | null;
 }
 
 /**
@@ -303,6 +304,7 @@ export function getArbitrageView(): ArbitrageEntry[] {
       margin_pct: marginPct,
       tradable_quantity: tradableQuantity,
       total_potential_profit: netProfitPerUnit * tradableQuantity,
+      packaged_volume: meta.packaged_volume ?? null,
     });
   }
 

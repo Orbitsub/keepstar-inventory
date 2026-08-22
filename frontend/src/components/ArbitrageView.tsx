@@ -8,7 +8,9 @@ const LOCATION_LABEL: Record<ArbitrageEntry['buy_at'], string> = {
 };
 
 export function ArbitrageView({ items }: { items: ArbitrageEntry[] }) {
-  if (items.length === 0) {
+  const filtered = items.filter(item => item.net_profit_per_unit > 1000);
+
+  if (filtered.length === 0) {
     return (
       <EmptyState message="No arbitrage opportunities yet. Configure a secondary structure ID in Settings and run a poll." />
     );
@@ -33,7 +35,7 @@ export function ArbitrageView({ items }: { items: ArbitrageEntry[] }) {
           </tr>
         </thead>
         <tbody>
-          {items.map(item => (
+          {filtered.map(item => (
             <tr key={item.type_id}>
               <td className="cell-primary">{item.name}</td>
               <td className="cell-muted">{item.category_name}</td>
